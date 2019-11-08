@@ -11,14 +11,16 @@
 // *Display of buy price or rent of property in the board overview [DONE]
 // *Save/load feature (import/export save state from JSON)
 // *Add mortgage mechanics
+// *Add title screen
+// *Add get out of jail free card
+// *Roll two dice instead of one [DONE]
 
 // FIX:
-// *Roll two dice instead of one
 // *Change placeholder values of property
 // *Change emoji piece icons to svg/font
 // *Position offset on iOS (only on editor view) [FIXED?]
 
-// REFACT:
+// REFACTOR:
 // *Fix adding class to DOM to be more consistent (className vs classList.add) [DONE]
 
 console.clear();
@@ -26,6 +28,7 @@ console.clear();
 const gameLoaderDOM = document.querySelector('#monopoly');
 const settings = {
     goCollect: 10,
+    diceCount: 2,
     startingMoney: 500,
     jailedTurn: 3,
     rentMultiplier: 2000
@@ -43,85 +46,68 @@ class MathHelpers {
 }
 
 class UIHelpers {
-    // TO DO:
-    // *Refactor this to map different actions to type parameter 
-    static rollDice(player) {
-        board.inputDisplay.innerHTML = '';
-        const header = document.createElement('h2');
-        const button = document.createElement('button');
-        header.innerText = `${player.name}'s Turn`;
-        board.inputDisplay.append(header);
-        button.innerText = `Roll Dice`;
-        board.inputDisplay.append(button);
-        return button;
-    }
-
-    static buyProperty(player, property) {
-        board.inputDisplay.innerHTML = '';
-        const header = document.createElement('h2');
-        header.innerText = `${player.name}: Buy ${property.name}`;
-        board.inputDisplay.append(header);
-        const accept = document.createElement('button');
-        accept.innerText = `Buy for \$${property.price}`;
-        board.inputDisplay.append(accept);
-        const decline = document.createElement('button');
-        decline.innerText = `Cancel`;
-        board.inputDisplay.append(decline);
-        return { accept: accept, decline: decline };
-    }
-
-    static upgradeProperty(player, property) {
-        board.inputDisplay.innerHTML = '';
-        const header = document.createElement('h2');
-        header.innerText = `${player.name}: Upgrade ${property.name}`;
-        board.inputDisplay.append(header);
-        const accept = document.createElement('button');
-        accept.innerText = `Upgrade for \$${property.currentUpgradeCost}`;
-        board.inputDisplay.append(accept);
-        const decline = document.createElement('button');
-        decline.innerText = `Cancel`;
-        board.inputDisplay.append(decline);
-        return { accept: accept, decline: decline };
-    }
-
-    static payRent(player, property) {
-        board.inputDisplay.innerHTML = '';
-        const header = document.createElement('h2');
-        header.innerText = `${player.name}: Rent Due at ${property.name} to ${property.owner.name}`;
-        board.inputDisplay.append(header);
-        const button = document.createElement('button');
-        button.innerText = `Pay \$${property.calculatedRent}${settings.rentMultiplier !== 1 ? ` (x${settings.rentMultiplier})` : ''} to ${property.owner.name}`;
-        board.inputDisplay.append(button);
-        return button;
-    }
-
-    static confirm(player, message, buttonText = 'OK') {
-        board.inputDisplay.innerHTML = '';
-        const header = document.createElement('h2');
-        header.innerText = `${player.name}: ${message}`;
-        board.inputDisplay.append(header);
-        const button = document.createElement('button');
-        button.innerText = buttonText;
-        board.inputDisplay.append(button);
-        return button;
-    }
-
-    static dialog(player, message, options = [new Option()]) {
+    static dialog(player, message, options = [new Option()], icon) {
         const buttons = new Map();
 
+        if (icon === undefined) {
+            icon = player.icon;
+        }
+
         board.inputDisplay.innerHTML = '';
         const header = document.createElement('h2');
         header.innerText = `${player.name}: ${message}`;
         board.inputDisplay.append(header);
+
+        const dialogIcon = document.createElement('div');
+        dialogIcon.className = 'dialogIcon';
+        dialogIcon.innerText = icon;
+        board.inputDisplay.append(dialogIcon);
+
         options.forEach((option) => {
-            console.log(option);
             const button = document.createElement('button');
             button.innerText = option.text;
             board.inputDisplay.append(button);
             buttons.set(option.name, button);
         });
-        console.log(buttons);
+
         return buttons;
+    }
+
+    static rollDice(player) {
+        const message = `${player.name}'s Turn`;
+        const button = this.dialog(player, message, [new Option('accept', 'Roll Dice')]).get('accept');
+
+        return button;
+    }
+
+    static buyProperty(player, property) {
+        const message = `Buy ${property.name}`;;
+        const options = [];
+        options.push(new Option('accept', `Buy for \$${property.price}`));
+        options.push(new Option('decline', 'Cancel'));
+
+        const buttons = this.dialog(player, message, options);
+
+        return buttons;
+    }
+
+    static upgradeProperty(player, property) {
+        const message = `Upgrade ${property.name}`;;
+        const options = [];
+        options.push(new Option('accept', `Upgrade for \$${property.currentUpgradeCost}`));
+        options.push(new Option('decline', 'Cancel'));
+
+        const buttons = this.dialog(player, message, options);
+
+        return buttons;
+    }
+
+    static payRent(player, property) {
+        const message = `Rent Due at ${property.name} to ${property.owner.name}`;
+        const buttonText = `Pay \$${property.calculatedRent}${settings.rentMultiplier !== 1 ? ` (x${settings.rentMultiplier})` : ''} to ${property.owner.name}`;
+        const button = this.dialog(player, message, [new Option('accept', buttonText)]).get('accept');
+
+        return button;
     }
 }
 
@@ -134,7 +120,7 @@ class Vector3D {
     }
 }
 
-// For buttons
+// Options for buttons
 class Option {
     constructor(name = 'accept', text = 'Ok') {
         this.name = name;
@@ -363,10 +349,11 @@ class Jail extends Space {
     }
 
     resolve(player) {
-        console.log(`${player.name} jailed`);
+        console.log(`${player.name} is in jail`);
         player.state = 'jailed';
         player.stateTurn = settings.jailedTurn;
-        const button = UIHelpers.dialog(player, message, [new Option('accept', 'Ok')]).get('accept');
+        const message = 'is in Jail';
+        const button = UIHelpers.dialog(player, message).get('accept');
         button.addEventListener('click', () => {
             game.finishTurn();
         });
@@ -442,7 +429,7 @@ class Property extends Space {
         if (this.owner === undefined) {
             console.log(`this property is not owned. prompt player to buy.`);
             const buttons = UIHelpers.buyProperty(player, this);
-            buttons.accept.addEventListener('click', () => {
+            buttons.get('accept').addEventListener('click', () => {
                 if (player.money >= this.price) {
                     player.withdraw(this.price);
                     this.owner = player;
@@ -453,7 +440,7 @@ class Property extends Space {
                 }
                 game.finishTurn();
             });
-            buttons.decline.addEventListener('click', () => {
+            buttons.get('decline').addEventListener('click', () => {
                 game.finishTurn();
             });
         } else if (this.owner === player) {
@@ -465,7 +452,7 @@ class Property extends Space {
             //Utility property does not require ownership of all property in the group to upgrade
             if ((this.color === 'black' || owned === total) && this.upgradeLevel < this.rent.length - 1) {
                 const buttons = UIHelpers.upgradeProperty(player, this);
-                buttons.accept.addEventListener('click', () => {
+                buttons.get('accept').addEventListener('click', () => {
                     if (player.money >= this.currentUpgradeCost) {
                         player.withdraw(this.currentUpgradeCost);
                         console.log(`${this.name} is upgraded by ${player.name} for \$${this.currentUpgradeCost}`);
@@ -476,7 +463,7 @@ class Property extends Space {
                     }
                     game.finishTurn();
                 });
-                buttons.decline.addEventListener('click', () => {
+                buttons.get('decline').addEventListener('click', () => {
                     game.finishTurn();
                 });
             } else {
@@ -569,23 +556,33 @@ class Game {
 
     rollDice() {
         const player = this.players[this.currentPlayerIndex];
-        const roll = MathHelpers.randomInt(1, 6);
-        console.log(`${player.name} rolls the dice! ${roll}!`);
+        const dieFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+        let totalRoll = 0;
+        let icon = '';
 
-        let position = player.position + roll;
-        if (position >= this.spaces.length) {
-            position = position % this.spaces.length;
-            player.deposit(settings.goCollect);
-            console.log(`passed start, collect \$${settings.goCollect}`);
+        for (let i = 0; i < settings.diceCount; i++) {
+            const roll = MathHelpers.randomInt(1, 6);
+            console.log(`${player.name} rolls the dice! ${roll}!`);
+            totalRoll += roll;
+            icon += dieFaces[roll - 1];
         }
 
-        console.log(`${player.name} lands in ${position}/${this.spaces.length - 1}!`);
-        player.moveTo(position);
+        const message = `Rolled ${totalRoll}`;
+        const button = UIHelpers.dialog(player, message, [new Option('accept', 'Move')], icon).get('accept');
+        button.addEventListener('click', () => {
+            let position = player.position + totalRoll;
+            if (position >= this.spaces.length) {
+                position = position % this.spaces.length;
+                player.deposit(settings.goCollect);
+                console.log(`passed start, collect \$${settings.goCollect}`);
+            }
+            console.log(`${player.name} landed on ${position}/${this.spaces.length - 1}!`);
+            player.moveTo(position);
+        });
     }
 
     finishTurn() {
         const player = this.players[this.currentPlayerIndex];
-        console.log(player);
         //Check if player is bankrupt
         if (player.money < 0) {
             player.state = 'bankrupt';
@@ -624,7 +621,7 @@ class Game {
     end() {
         const player = game.players.find((current) => current.state !== 'bankrupt');
         const message = `${player.name} wins!`;
-        const button = UIHelpers.dialog(player, message, [new Option('accept', 'Reset Game')]).get('accept');
+        const button = UIHelpers.dialog(player, message, [new Option('accept', 'Reset Game')], `🏆${player.icon}🏆`).get('accept');
 
         button.addEventListener('click', () => {
             // GameHelpers.setupBoard();
@@ -683,28 +680,3 @@ GameHelpers.setupGame();
 GameHelpers.setupPlayers();
 GameHelpers.setupEventListeners();
 game.start();
-
-// -Player roll dice
-// -Resolve action
-//    If pass start point:
-//       -Collect 
-//    If property:
-//       If property is unowned:
-//          -Prompt to buy
-//             If accept purchase
-//                -Change property owner to player
-//             If decline purchase
-//                -Auction property
-//       If property is owned by landed player:
-//          If landed player own all property in color group:
-//             -Prompt to upgrade
-//       If property is owned by other player:
-//          -Pay rent
-//    If jail:
-//       Set player state to jail
-// -Check if Game Over
-//    If money is less than 0
-//       -Set player state to game over
-//       -Check if current number of player is more than 0
-//    If turn count reaches zero
-
