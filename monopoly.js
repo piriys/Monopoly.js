@@ -105,6 +105,24 @@ class UIHelpers {
         board.inputDisplay.append(button);
         return button;
     }
+
+    static dialog(player, message, options = [new Option()]) {
+        const buttons = new Map();
+
+        board.inputDisplay.innerHTML = '';
+        const header = document.createElement('h2');
+        header.innerText = `${player.name}: ${message}`;
+        board.inputDisplay.append(header);
+        options.forEach((option) => {
+            console.log(option);
+            const button = document.createElement('button');
+            button.innerText = option.text;
+            board.inputDisplay.append(button);
+            buttons.set(option.name, button);
+        });
+        console.log(buttons);
+        return buttons;
+    }
 }
 
 // 3D Vector for transforms
@@ -113,6 +131,14 @@ class Vector3D {
         this.x = x;
         this.y = y;
         this.z = z;
+    }
+}
+
+// For buttons
+class Option {
+    constructor(name = 'accept', text = 'Ok') {
+        this.name = name;
+        this.text = text;
     }
 }
 
@@ -340,7 +366,7 @@ class Jail extends Space {
         console.log(`${player.name} jailed`);
         player.state = 'jailed';
         player.stateTurn = settings.jailedTurn;
-        const button = UIHelpers.confirm(player, ' Jailed');
+        const button = UIHelpers.dialog(player, message, [new Option('accept', 'Ok')]).get('accept');
         button.addEventListener('click', () => {
             game.finishTurn();
         });
@@ -526,7 +552,7 @@ class Game {
             } else if (player.state === 'jailed') {
                 const message = player.stateTurn > 1 ? `${player.stateTurn} Turn${player.stateTurn > 1 ? 's' : ''} Remaining in Jail` : 'Last Turn in Jail';
                 const buttonText = player.stateTurn > 1 ? 'Skip Turn' : 'Get Out';
-                const button = UIHelpers.confirm(player, message, buttonText);
+                const button = UIHelpers.dialog(player, message, [new Option('accept', buttonText)]).get('accept');
                 button.addEventListener('click', () => {
                     player.stateTurn--;
                     if (player.stateTurn === 0) {
@@ -559,6 +585,7 @@ class Game {
 
     finishTurn() {
         const player = this.players[this.currentPlayerIndex];
+        console.log(player);
         //Check if player is bankrupt
         if (player.money < 0) {
             player.state = 'bankrupt';
@@ -566,7 +593,7 @@ class Game {
             player.playerPieceDOM.style.filter = 'grayscale(100%)';
             player.updateDisplay();
             const message = 'GAME OVER';
-            const button = UIHelpers.confirm(player, message);
+            const button = UIHelpers.dialog(player, message, [new Option('accept', 'Ok')]).get('accept');
             button.addEventListener('click', () => {
                 this.nextTurn();
             });
@@ -595,8 +622,10 @@ class Game {
     }
 
     end() {
-        const winner = game.players.find((current) => current.state !== 'bankrupt');
-        const button = UIHelpers.confirm(winner, `${winner.name} wins!`, 'Reset Game');
+        const player = game.players.find((current) => current.state !== 'bankrupt');
+        const message = `${player.name} wins!`;
+        const button = UIHelpers.dialog(player, message, [new Option('accept', 'Reset Game')]).get('accept');
+
         button.addEventListener('click', () => {
             // GameHelpers.setupBoard();
             GameHelpers.setupGame();
