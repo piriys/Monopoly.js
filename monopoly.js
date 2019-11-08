@@ -28,15 +28,33 @@ console.clear();
 const gameLoaderDOM = document.querySelector('#monopoly');
 const settings = {
     goCollect: 10,
-    diceCount: 2,
+    dieCount: 3,
     startingMoney: 500,
     jailedTurn: 3,
-    rentMultiplier: 2000
+    rentMultiplier: 2000,
+    taxMultiplier: 30
 };
 
 // Global
 let game;
 let board;
+
+// Classes for helpers
+class Vector3D {
+    constructor(x = 0, y = 0, z = 0) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+}
+
+class Option {
+    constructor(name = 'accept', text = 'Ok') {
+        this.name = name;
+        this.text = text;
+    }
+}
+
 
 // Helpers
 class MathHelpers {
@@ -46,10 +64,10 @@ class MathHelpers {
 }
 
 class UIHelpers {
-    static dialog(player, message, options = [new Option()], icon) {
+    static dialog(player, message, options = [new Option()], icon = '') {
         const buttons = new Map();
 
-        if (icon === undefined) {
+        if (icon === '') {
             icon = player.icon;
         }
 
@@ -80,8 +98,31 @@ class UIHelpers {
         return button;
     }
 
+    static drawChanceCard(player) {
+        const message = `Chance!`;
+        const button = this.dialog(player, message, [new Option('accept', 'Draw')], '❔').get('accept');
+
+        return button;
+    }
+
+    static drawCommunityChestCard(player) {
+        const message = `Community Chest`;
+        const button = this.dialog(player, message, [new Option('accept', 'Draw')], '📦').get('accept');
+
+        return button;
+    }
+
+    static payTax(player, tax) {
+        console.log(tax);
+        const message = `Pay ${tax.name}`;
+        const buttonText = `Pay \$${tax.amount}${settings.taxMultiplier !== 1 ? ` (x${settings.taxMultiplier})` : ''}`;
+        const button = this.dialog(player, message, [new Option('accept', buttonText)], '💸').get('accept');
+
+        return button;
+    }
+
     static buyProperty(player, property) {
-        const message = `Buy ${property.name}`;;
+        const message = `Buy ${property.name}`;
         const options = [];
         options.push(new Option('accept', `Buy for \$${property.price}`));
         options.push(new Option('decline', 'Cancel'));
@@ -92,7 +133,7 @@ class UIHelpers {
     }
 
     static upgradeProperty(player, property) {
-        const message = `Upgrade ${property.name}`;;
+        const message = `Upgrade ${property.name}`;
         const options = [];
         options.push(new Option('accept', `Upgrade for \$${property.currentUpgradeCost}`));
         options.push(new Option('decline', 'Cancel'));
@@ -111,22 +152,6 @@ class UIHelpers {
     }
 }
 
-// 3D Vector for transforms
-class Vector3D {
-    constructor(x = 0, y = 0, z = 0) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-}
-
-// Options for buttons
-class Option {
-    constructor(name = 'accept', text = 'Ok') {
-        this.name = name;
-        this.text = text;
-    }
-}
 
 // Game Assets
 class GameAsset {
@@ -134,8 +159,8 @@ class GameAsset {
         //this.game = param.game;
         this.transform = {
             scale: 0,
-            rotate: new Vector3D,
-            translate: new Vector3D,
+            rotate: new Vector3D(),
+            translate: new Vector3D(),
         };
     }
 }
@@ -143,11 +168,11 @@ class GameAsset {
 class Board extends GameAsset {
     constructor(param) {
         super(param);
-        this.boardLayer;
-        this.pieceLayer;
-        this.statsDisplay;
-        this.inputDisplay;
-        this.spaceDetailDisplay;
+        this.boardLayer = document.createElement('div');
+        this.pieceLayer = document.createElement('div');
+        this.statsDisplay = document.createElement('div');
+        this.inputDisplay = document.createElement('div');
+        this.spaceDetailDisplay = document.createElement('div');
     }
 
     setup() {
@@ -319,6 +344,23 @@ class Space extends GameAsset {
     }
 }
 
+// TO DO:
+// *Change tax field of external object to amount
+class Tax extends Space {
+    constructor(param) {
+        super(param);
+        this.amount = param.tax;
+    }
+
+    resolve(player) {
+        const button = UIHelpers.payTax(player, this);
+        button.addEventListener('click', () => {
+            player.withdraw(this.amount * settings.taxMultiplier);
+            game.finishTurn();
+        });
+    }
+}
+
 class Chance extends Space {
     constructor(param) {
         super(param);
@@ -326,7 +368,24 @@ class Chance extends Space {
 
     resolve(player) {
         console.log(`drawing chance card for ${player.name}`);
-        //Add chance logic here
+        const button = UIHelpers.drawChanceCard(player);
+        button.addEventListener('click', () => {
+            game.finishTurn();
+        });
+    }
+}
+
+class Chest extends Space {
+    constructor(param) {
+        super(param);
+    }
+
+    resolve(player) {
+        console.log(`drawing community chest card for ${player.name}`);
+        const button = UIHelpers.drawCommunityChestCard(player);
+        button.addEventListener('click', () => {
+            game.finishTurn();
+        });
     }
 }
 
@@ -483,12 +542,12 @@ class Property extends Space {
 
 class Game {
     constructor() {
-        this.players;
-        this.spaces;
-        this.chanceCards;
-        this.communityChestCards;
-        this.currentPlayerIndex;
-        this.turnCount;
+        this.players = [];
+        this.spaces = [];
+        this.chanceCards = [];
+        this.communityChestCards = [];
+        this.currentPlayerIndex = 0;
+        this.turnCount = 0;
     }
 
     setup() {
@@ -516,6 +575,15 @@ class Game {
                 break;
             case 'gotojail':
                 this.spaces.push(new GoToJail(param));
+                break;
+            case 'chance':
+                this.spaces.push(new Chance(param));
+                break;
+            case 'chest':
+                this.spaces.push(new Chest(param));
+                break;
+            case 'tax':
+                this.spaces.push(new Tax(param));
                 break;
             default:
                 this.spaces.push(new Space(param));
@@ -554,13 +622,13 @@ class Game {
         }
     }
 
-    rollDice() {
+    rollDice(count = settings.dieCount) {
         const player = this.players[this.currentPlayerIndex];
         const dieFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
         let totalRoll = 0;
         let icon = '';
 
-        for (let i = 0; i < settings.diceCount; i++) {
+        for (let i = 0; i < count; i++) {
             const roll = MathHelpers.randomInt(1, 6);
             console.log(`${player.name} rolls the dice! ${roll}!`);
             totalRoll += roll;
