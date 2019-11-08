@@ -25,7 +25,6 @@
 
 console.clear();
 // Constants
-const gameLoaderDOM = document.querySelector('#monopoly');
 const settings = {
     goCollect: 10,
     dieCount: 3,
@@ -38,6 +37,16 @@ const settings = {
 // Global
 let game;
 let board;
+let gameLoaderDOM;
+
+document.addEventListener('DOMContentLoaded', function () {
+    gameLoaderDOM = document.querySelector('#monopoly');
+    GameHelpers.setupGame();
+    GameHelpers.setupPlayers();
+    GameHelpers.setupEventListeners();
+    game.start();
+}, false);
+
 
 // Classes for helpers
 class Vector3D {
@@ -54,7 +63,6 @@ class Option {
         this.text = text;
     }
 }
-
 
 // Helpers
 class MathHelpers {
@@ -743,8 +751,3 @@ class GameHelpers {
         return board.transform;
     }
 }
-
-GameHelpers.setupGame();
-GameHelpers.setupPlayers();
-GameHelpers.setupEventListeners();
-game.start();

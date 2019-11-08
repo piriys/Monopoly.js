@@ -1,0 +1,117 @@
+:root {
+  --space-width: 100px;
+}
+* {
+  box-sizing: border-box;
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+}
+body {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #280f36;
+}
+#monopoly {
+  width: calc(11 * var(--space-width));
+  height: calc(11 * var(--space-width));
+  min-width: calc(11 * var(--space-width));
+  min-height: calc(11 * var(--space-width));
+  transform-origin: center bottom;
+}
+.hud {
+  background-color: #2f4f4f;
+  color: #adff2f;
+  border: 1px dashed #adff2f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  z-index: 999;
+}
+button {
+  background-color: #2e8b57;
+  color: #adff2f;
+  padding: 1em;
+  border: 0px;
+  z-index: 1000;
+}
+#stats {
+  flex-direction: column;
+  justify-content: space-around;
+  grid-column: 2/5;
+  grid-row: 7/11;
+}
+#input {
+  flex-direction: column;
+  justify-content: space-around;
+  grid-column: 5/8;
+  grid-row: 7/11;
+}
+#spaceDetail {
+  grid-column: 8/11;
+  grid-row: 7/11;
+}
+#pieceLayer,
+#boardLayer {
+  position: absolute;
+  width: calc(11 * var(--space-width));
+  height: calc(11 * var(--space-width));
+}
+#boardLayer {
+  display: grid;
+  grid-template-columns: repeat(11, var(--space-width));
+  grid-template-rows: repeat(11, var(--space-width));
+  background-color: #2f4f4f;
+  color: #9acd32;
+  border-radius: 2%;
+}
+.space {
+  display: flex;
+  font-size: 0.8em;
+  text-align: center;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+.spaceNumber {
+  top: 0;
+  left: 0;
+}
+.playerStats {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  width: 100%;
+}
+.playerIcon {
+  display: flex;
+  font-size: 3em;
+  line-height: 100%;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.dialogIcon {
+  display: flex;
+  font-size: 4em;
+  line-height: 100%;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.piece {
+  display: flex;
+  position: absolute;
+  font-size: 2em;
+  width: 2em;
+  height: 2em;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  z-index: 1000;
+  transition: all 2s ease-in;
+}
