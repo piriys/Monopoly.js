@@ -1,19 +1,22 @@
 // TO DO:
+// *Implements/convert board spaces with Web Component
 // *Set player state to bankrupt if money is less than 0 [DONE]
 // *Check if game is over after setting player state to lost [DONE]
 // *Check if other property in the same color group has the same upgrade level before prompting [DONE]
 // *Implement resolve function of jail space [DONE]
-// *Implement resolve function of chance space
-// *Implement resolve function of community chest space
+// *Implement resolve function of chance space [DONE]
+// *Implement resolve function of community chest space [DONE]
 // *Implement getter/setter for player state
-// *Remove rent multiplier after testing
+// *Remove rent/tax multiplier after testing
 // *Property display showing details of current property that the player is in
 // *Display of buy price or rent of property in the board overview [DONE]
 // *Save/load feature (import/export save state from JSON)
 // *Add mortgage mechanics
 // *Add title screen
 // *Add get out of jail free card
-// *Roll two dice instead of one [DONE]
+// *Roll two or more dice instead of one [DONE]
+// *Add dice rolling/randomizing animation
+// *If player rolls double, they get to roll again. If player gets double three times in a roll, send them to jail. 
 
 // FIX:
 // *Change placeholder values of property
@@ -27,11 +30,11 @@ console.clear();
 // Constants
 const settings = {
     goCollect: 10,
-    dieCount: 3,
+    dieCount: 2,
     startingMoney: 500,
     jailedTurn: 3,
-    rentMultiplier: 2000,
-    taxMultiplier: 30
+    rentMultiplier: 2000, //For faster game
+    taxMultiplier: 30 //For faster game
 };
 
 // Global
@@ -102,20 +105,6 @@ class UIHelpers {
     static rollDice(player) {
         const message = `${player.name}'s Turn`;
         const button = this.dialog(player, message, [new Option('accept', 'Roll Dice')]).get('accept');
-
-        return button;
-    }
-
-    static drawChanceCard(player) {
-        const message = `Chance!`;
-        const button = this.dialog(player, message, [new Option('accept', 'Draw')], '❔').get('accept');
-
-        return button;
-    }
-
-    static drawCommunityChestCard(player) {
-        const message = `Community Chest`;
-        const button = this.dialog(player, message, [new Option('accept', 'Draw')], '📦').get('accept');
 
         return button;
     }
@@ -311,7 +300,8 @@ class Player extends GameAsset {
         this.updateDisplay();
     }
 }
-
+// TO DO: 
+// *Refractor so every subclass sets icon
 class Space extends GameAsset {
     constructor(param) {
         super(param);
@@ -320,6 +310,7 @@ class Space extends GameAsset {
         this.column = param.column;
         this.row = param.row;
         this.position = param.position;
+        this.icon = '';
 
         this.boardSpaceWrapper = document.createElement('div');
         this.boardSpaceWrapper.className = 'space';
@@ -352,12 +343,10 @@ class Space extends GameAsset {
     }
 }
 
-// TO DO:
-// *Change tax field of external object to amount
 class Tax extends Space {
     constructor(param) {
         super(param);
-        this.amount = param.tax;
+        this.amount = param.amount;
     }
 
     resolve(player) {
@@ -369,30 +358,70 @@ class Tax extends Space {
     }
 }
 
-class Chance extends Space {
+class RandomAction extends Space {
     constructor(param) {
         super(param);
+        this.deck = [];
+        this.dialogMessage = '';
     }
 
     resolve(player) {
-        console.log(`drawing chance card for ${player.name}`);
-        const button = UIHelpers.drawChanceCard(player);
-        button.addEventListener('click', () => {
-            game.finishTurn();
-        });
-    }
-}
+        console.log(`drawing card for ${player.name} from ${this.type}`);
+        let message = '';
+        switch (this.type.toLowerCase()) {
+            case 'chance':
+                this.deck = game.chanceCards;
+                message = 'Chance!';
+                this.icon = '❔';
+                break;
+            case 'chest':
+                this.deck = game.communityChestCards;
+                message = 'Community Chest';
+                this.icon = '🎁';
+                break;
+        }
 
-class Chest extends Space {
-    constructor(param) {
-        super(param);
-    }
-
-    resolve(player) {
-        console.log(`drawing community chest card for ${player.name}`);
-        const button = UIHelpers.drawCommunityChestCard(player);
+        const button = UIHelpers.dialog(player, message, [new Option('accept', 'Draw')], this.icon).get('accept');
         button.addEventListener('click', () => {
-            game.finishTurn();
+            if (this.deck.length > 0) {
+                const randomCardIndex = MathHelpers.randomInt(0, this.deck.length - 1);
+                const card = this.deck[randomCardIndex];
+                console.log(card);
+
+                let resolveButtonText = 'Ok';
+                let resolveFunction = () => {
+                    game.finishTurn();
+                };
+
+                switch (card.type.toLowerCase()) {
+                    case 'movetoproperty':
+                        resolveButtonText = `Move to ${card.propertyName}`;
+                        resolveFunction = () => {
+                            const propertySpaceIndex = game.spaces.findIndex((space) => space.name === card.propertyName); player.moveTo(propertySpaceIndex);
+                            game.finishTurn();
+                        };
+                        break;
+                    case 'withdraw':
+                        resolveButtonText = `Pay \$${card.amount}`;
+                        resolveFunction = () => {
+                            player.withdraw(card.amount * settings.taxMultiplier);
+                            game.finishTurn();
+                        };
+                        break;
+                    case 'deposit':
+                        resolveButtonText = `Receive \$${card.amount}`;
+                        resolveFunction = () => {
+                            player.deposit(card.amount);
+                            game.finishTurn();
+                        };
+                        break;
+                }
+
+                const resolveButton = UIHelpers.dialog(player, card.description, [new Option('accept', resolveButtonText)], card.icon).get('accept');
+                resolveButton.addEventListener('click', resolveFunction);
+            } else {
+                game.finishTurn();
+            }
         });
     }
 }
@@ -585,10 +614,10 @@ class Game {
                 this.spaces.push(new GoToJail(param));
                 break;
             case 'chance':
-                this.spaces.push(new Chance(param));
+                this.spaces.push(new RandomAction(param));
                 break;
             case 'chest':
-                this.spaces.push(new Chest(param));
+                this.spaces.push(new RandomAction(param));
                 break;
             case 'tax':
                 this.spaces.push(new Tax(param));

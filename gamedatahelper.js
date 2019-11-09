@@ -3,21 +3,21 @@
 class GameDataHelpers {
     static loadChanceCards() {
         return [{
-            "description": "Advance to Illinois Avenue—If you pass Go, collect $200",
+            "description": "Advance to Illinois Avenue",
             "icon": "🛫",
             "type": "moveToProperty",
             "propertyName": "Illinois Avenue",
             "collectPassGo": true
         },
         {
-            "description": "Advance to St. Charles Place—If you pass Go, collect $200",
+            "description": "Advance to St. Charles Place",
             "icon": "🛫",
             "type": "moveToProperty",
             "propertyName": "St. Charles Place",
             "collectPassGo": true
         },
         {
-            "description": "Pay poor tax of $15",
+            "description": "Pay Poor Tax of $15",
             "icon": "💸",
             "type": "withdraw",
             "amount": 15
@@ -25,10 +25,10 @@ class GameDataHelpers {
     }
     static loadCommunityChestCards() {
         return [{
-            "description": "From sale of stock you get $50",
+            "description": "From Sale of Stock You Get $50",
             "icon": "💰",
             "type": "deposit",
-            "amount": 15
+            "amount": 50
         },
         {
             "description": "Income tax refund— Collect $20",
@@ -101,7 +101,7 @@ class GameDataHelpers {
             "type": "tax",
             "column": 7,
             "row": 11,
-            "tax": 200
+            "amount": 200
         },
         {
             "name": "Reading Railroad",
@@ -731,7 +731,7 @@ class GameDataHelpers {
             "type": "tax",
             "column": 11,
             "row": 9,
-            "tax": 100
+            "amount": 100
         },
         {
             "name": "Boardwalk",
