@@ -1,32 +1,3 @@
-// TO DO:
-// *Implements/convert board spaces with Web Component
-// *Set default parameters with destructuring
-// *Set player state to bankrupt if money is less than 0 [DONE]
-// *Check if game is over after setting player state to lost [DONE]
-// *Check if other property in the same color group has the same upgrade level before prompting [DONE]
-// *Implement resolve function of jail space [DONE]
-// *Implement resolve function of chance space [DONE]
-// *Implement resolve function of community chest space [DONE]
-// *Implement getter/setter for player state
-// *Remove rent/tax multiplier after testing
-// *Property display showing details of current property that the player is in
-// *Display of buy price or rent of property in the board overview [DONE]
-// *Save/load feature (import/export save state from JSON)
-// *Add mortgage mechanics
-// *Add title screen
-// *Add get out of jail free card
-// *Roll two or more dice instead of one [DONE]
-// *Add dice rolling/randomizing animation
-// *If player rolls double, they get to roll again. If player gets double three times in a roll, send them to jail. 
-
-// FIX:
-// *Change placeholder values of property, chance, and community chest
-// *Change emoji piece icons to svg/font
-// *Position offset on iOS (only on editor view) [FIXED?]
-
-// REFACTOR:
-// *Fix adding class to DOM to be more consistent (className vs classList.add) [DONE]
-
 console.clear();
 // Constants
 const settings = {
@@ -42,9 +13,13 @@ const settings = {
 let game;
 let board;
 let gameLoaderDOM;
+let gameDOM;
 
 document.addEventListener('DOMContentLoaded', function () {
-    gameLoaderDOM = document.querySelector('#monopoly');
+    gameLoaderDOM = document.querySelector('#gameLoader');
+    gameDOM = document.createElement('div');
+    gameDOM.id = 'game';
+    gameLoaderDOM.append(gameDOM);
     GameHelpers.setupGame();
     GameHelpers.setupPlayers();
     GameHelpers.setupEventListeners();
@@ -178,7 +153,7 @@ class Board extends GameAsset {
     }
 
     setup() {
-        gameLoaderDOM.innerHTML = '';
+        gameDOM.innerHTML = '';
         this.boardLayer = document.createElement('div');
         this.boardLayer.id = 'boardLayer';
 
@@ -200,8 +175,8 @@ class Board extends GameAsset {
         this.pieceLayer = document.createElement('div');
         this.pieceLayer.id = 'pieceLayer';
 
-        gameLoaderDOM.append(this.pieceLayer);
-        gameLoaderDOM.append(this.boardLayer);
+        gameDOM.append(this.pieceLayer);
+        gameDOM.append(this.boardLayer);
     }
 }
 
@@ -775,12 +750,12 @@ class GameHelpers {
             windowWidth / boardWidth,
             windowHeight / boardHeight
         ) * 0.99;
-        gameLoaderDOM.style['transform-origin'] = `${boardHeight / 2}px ${boardWidth / 2}px`;
+        gameDOM.style['transform-origin'] = `${boardHeight / 2}px ${boardWidth / 2}px`;
 
         const rotate = `rotateX(${board.transform.rotate.x}deg) rotateY(${board.transform.rotate.y}deg) rotateZ(${board.transform.rotate.z}deg)`;
         const scale = `scale(${board.transform.scale})`;
         const translate = `translateX(${board.transform.translate.x}px) translateY(${board.transform.translate.y}px) translateZ(${board.transform.translate.z}px)`;
-        gameLoaderDOM.style.transform = `${rotate} ${scale} ${translate}`;
+        gameDOM.style.transform = `${rotate} ${scale} ${translate}`;
         return board.transform;
     }
 }

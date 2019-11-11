@@ -7,7 +7,10 @@
   margin: 0;
   padding: 0;
 }
-body {
+#gameLoader {
+  position: fixed;
+  backface-visibility: hidden; /* Position fixed for mobile */
+  z-index: 1000;
   width: 100vw;
   height: 100vh;
   display: flex;
@@ -15,7 +18,7 @@ body {
   align-items: center;
   background-color: #280f36;
 }
-#monopoly {
+#game {
   width: calc(11 * var(--space-width));
   height: calc(11 * var(--space-width));
   min-width: calc(11 * var(--space-width));
@@ -30,14 +33,14 @@ body {
   align-items: center;
   justify-content: center;
   text-align: center;
-  z-index: 999;
+  z-index: 1001;
 }
 button {
   background-color: #2e8b57;
   color: #adff2f;
   padding: 1em;
   border: 0px;
-  z-index: 1000;
+  z-index: 1002;
 }
 #stats {
   flex-direction: column;
@@ -112,6 +115,6 @@ button {
   justify-content: center;
   align-items: center;
   text-align: center;
-  z-index: 1000;
+  z-index: 1003;
   transition: all 2s ease-in;
 }
