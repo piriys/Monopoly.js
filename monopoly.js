@@ -774,17 +774,6 @@ class Game {
     }
 }
 
-class MonopolyGame extends Game {
-    // STUB
-    constructor() {
-        super();
-    }
-
-    setup() {
-        super.setup();
-    }
-}
-
 class GameHelpers {
     static setupGame() {
         board = new Board();
