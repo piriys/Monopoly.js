@@ -1,5 +1,6 @@
 // TO DO:
 // *Implements/convert board spaces with Web Component
+// *Set default parameters with destructuring
 // *Set player state to bankrupt if money is less than 0 [DONE]
 // *Check if game is over after setting player state to lost [DONE]
 // *Check if other property in the same color group has the same upgrade level before prompting [DONE]
@@ -75,6 +76,10 @@ class MathHelpers {
 }
 
 class UIHelpers {
+    static menu(player, message, options = [new Option()], icon = '') {
+        const buttons = new Map();
+        return buttons;
+    }
     static dialog(player, message, options = [new Option()], icon = '') {
         const buttons = new Map();
 
