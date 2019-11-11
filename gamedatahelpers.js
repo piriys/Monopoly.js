@@ -5,15 +5,17 @@ class GameDataHelpers {
         return [{
             "description": "Advance to Illinois Avenue",
             "icon": "🛫",
-            "type": "moveToProperty",
-            "propertyName": "Illinois Avenue",
+            "type": "moveto",
+            "nameId": "illinois_avenue",
+            "resolveSpace": false,
             "collectPassGo": true
         },
         {
             "description": "Advance to St. Charles Place",
             "icon": "🛫",
-            "type": "moveToProperty",
-            "propertyName": "St. Charles Place",
+            "type": "moveto",
+            "nameId": "st_charles_place",
+            "resolveSpace": false,            
             "collectPassGo": true
         },
         {

@@ -1,9 +1,9 @@
 console.clear();
 // Constants
 const settings = {
-    goCollect: 10,
+    goCollectAmountAmount: 10,
     dieCount: 2,
-    startingMoney: 500,
+    startingAmount: 500,
     jailedTurn: 3,
     rentMultiplier: 2000, //For faster game
     taxMultiplier: 30 //For faster game
@@ -187,7 +187,6 @@ class Player extends GameAsset {
         this.money = param.money;
         this.state = 'playing';
         this.stateTurn = 0;
-        this.position = 0; // Remove this after moveForward/moveBackward is done
         this.currentSpace;
 
         this.playerStatsWrapper = document.createElement('div');
@@ -209,9 +208,9 @@ class Player extends GameAsset {
         this.playerMoneyDOM.className = 'playerMoney';
         this.playerTextStatsWrapper.append(this.playerMoneyDOM);
 
-        this.playerPositionDOM = document.createElement('div');
-        this.playerPositionDOM.className = 'playerPosition';
-        this.playerTextStatsWrapper.append(this.playerPositionDOM);
+        this.playerSpaceDOM = document.createElement('div');
+        this.playerSpaceDOM.className = 'playerSpace';
+        this.playerTextStatsWrapper.append(this.playerSpaceDOM);
 
         this.playerStateDOM = document.createElement('div');
         this.playerStateDOM.className = 'playerState';
@@ -234,21 +233,32 @@ class Player extends GameAsset {
         this.playerIconDOM.innerText = `${this.icon}`;
         this.playerNameDOM.innerText = `Player: ${this.name}`;
         this.playerMoneyDOM.innerText = `Money: ${this.money}`;
-        this.playerPositionDOM.innerText = `Position: ${this.position}`;
         this.playerStateDOM.innerText = `[${this.state.toUpperCase()}${this.state === 'playing' || this.state === 'bankrupt' ? '' : ` (${this.stateTurn})`}]`;
         if (this.state === 'bankrupt') {
             this.playerStatsWrapper.filter = 'grayscale(100%)';
         }
     }
 
-    updatePiece(position = this.position) {
+    updatePiece() {
         this.playerPieceDOM.style.left = `${(this.currentSpace.column - 1) / 11 * 100}%`;
         this.playerPieceDOM.style.top = `${(this.currentSpace.row - 1) / 11 * 100}%`;
     }
 
-    moveTo(nameId = 'start', resolveSpace = true) {
-        this.currentSpace = game.spaceMap.get(nameId);
-        
+    moveTo(nameId = 'start', resolveSpace = false, collectPassGo = false) {
+        // TO DO:
+        // *Add exit loop/throw exception if not found
+        if(this.currentSpace === undefined) {
+            this.currentSpace = game.spaceMap.get(nameId);
+        } else {
+            while (this.currentSpace.nameId !== nameId) {
+                this.currentSpace = game.spaceMap.get(this.currentSpace.nextId);
+                // Add animation between steps here
+                if (collectPassGo) {
+                    this.deposit(settings.goCollectAmount);
+                }
+            }
+        }
+
         console.log(`${this.name} moves to [${this.currentSpace.name}]!`);        
         if (resolveSpace) {
             this.currentSpace.resolve(this);
@@ -258,7 +268,7 @@ class Player extends GameAsset {
         return this.currentSpace;
     }
 
-    moveForward(steps = 1, resolveSpace = true) {
+    moveForward(steps = 1, resolveSpace = true, collectPassGo = true) {
         // Assume steps > 0
         for (let i = 0; i < steps; i++) {
             this.currentSpace = game.spaceMap.get(this.currentSpace.nextId);
@@ -281,7 +291,7 @@ class Player extends GameAsset {
         for (let i = 0; i < steps; i++) {
             this.currentSpace = game.spaceMap.get(this.currentSpace.prevId);
             // Add animation between steps here
-            // Collect if current position is start 
+
         }
 
         console.log(`${this.name} landed on ${this.currentSpace.name}!`);
@@ -327,7 +337,6 @@ class Space extends GameAsset {
         this.type = param.type;
         this.column = param.column;
         this.row = param.row;
-        this.position = param.position;
         this.icon = '';
 
         this.boardSpaceWrapper = document.createElement('div');
@@ -335,7 +344,6 @@ class Space extends GameAsset {
 
         const spaceNumberDOM = document.createElement('div');
         spaceNumberDOM.className = 'spaceNumber';
-        spaceNumberDOM.innerText = `(${this.position})`;
         this.boardSpaceWrapper.append(spaceNumberDOM);
 
         this.spaceNameDOM = document.createElement('h3');
@@ -411,10 +419,11 @@ class RandomAction extends Space {
                 };
 
                 switch (card.type.toLowerCase()) {
-                    case 'moveToproperty':
-                        resolveButtonText = `Move to ${card.propertyName}`;
-                        resolveFunction = () => {
-                            const propertySpaceIndex = game.spaces.findIndex((space) => space.name === card.propertyName); player.moveTo(propertySpaceIndex);
+                    // Change this so it looks up nameId instead 
+                    case 'moveto':
+                        resolveButtonText = `Move to ${card.nameId}`;
+                        resolveFunction = () => { 
+                            player.moveTo(card.nameId, card.resolveSpace, card.collectPassGo);
                             game.finishTurn();
                         };
                         break;
@@ -556,11 +565,17 @@ class Property extends Space {
         } else if (this.owner === player) {
             console.log(`this property is owned by player. check if upgrade is available.`);
             //check if player own all property in color group
-            const owned = game.spaces.reduce((count, current) => count + ((current.owner === player && current.color === this.color) ? 1 : 0), 0);
-            const total = game.spaces.reduce((count, current) => count + (current.color === this.color ? 1 : 0), 0);
-            console.log(`group: ${this.color} total: ${total} owned: ${owned}`);
+            let ownedAll = true;
+
+            for(const property of game.propertyGroups.get(this.color).value) {
+                if(property.owner !== player) {
+                    ownedAll = false;
+                    break;
+                }
+            }
+
             //Utility property does not require ownership of all property in the group to upgrade
-            if ((this.color === 'black' || owned === total) && this.upgradeLevel < this.rent.length - 1) {
+            if ((this.color === 'black' || ownedAll) && this.upgradeLevel < this.rent.length - 1) {
                 const buttons = UIHelpers.upgradeProperty(player, this);
                 buttons.get('accept').addEventListener('click', () => {
                     if (player.money >= this.currentUpgradeCost) {
@@ -591,42 +606,48 @@ class Property extends Space {
     }
 }
 
-// TO DO: 
-// *Getter/Setter for startSpace
 class Game {
     constructor() {
+        this.turnCount = 0;
         this.players = [];
-        this.spaces = []; //Remove this after map is implemented
+        this.currentPlayerIndex = 0;
+
         this.spaceMap = new Map();
         this.startSpace;
+        
+        // Monopoly only
+        this.propertyGroups = new Map();
         this.chanceCards = [];
         this.communityChestCards = [];
-        this.currentPlayerIndex = 0;
-        this.turnCount = 0;
     }
 
     setup() {
+        this.turnCount = 0;
         this.players = [];
-        this.spaces = [];
+        this.currentPlayerIndex = 0;
+        
+        this.spaceMap = new Map();
+
         this.chanceCards = [];
         this.communityChestCards = [];
-        this.currentPlayerIndex = 0;
-        this.turnCount = 0;
     }
 
     addPlayer(param) {
         const newPlayer = new Player(param);
         this.players.push(newPlayer);
-        newPlayer.moveTo('start', false);
+        newPlayer.moveTo('start');
         newPlayer.updateDisplay();
     }
 
     addSpace(param) {
-        param.position = this.spaces.length; // Remove this after map is implemented
         let newSpace;
         switch (param.type.toLowerCase()) {
             case 'property':
                 newSpace = new Property(param);
+                if(!this.propertyGroups.has(newSpace.color)) {
+                    this.propertyGroups.set(newSpace.color, {value: []});
+                }
+                this.propertyGroups.get(newSpace.color).value.push(newSpace);
                 break;
             case 'jail':
                 newSpace = new Jail(param);
@@ -646,7 +667,6 @@ class Game {
             default:
                 newSpace = new Space(param);
         }
-        this.spaces.push(newSpace); // Remove this after map is implemented - still needed for checking color groups
         this.spaceMap.set(newSpace.nameId, newSpace);
     }
 
@@ -698,15 +718,6 @@ class Game {
         const message = `Rolled ${totalRoll}`;
         const button = UIHelpers.dialog(player, message, [new Option('accept', 'Move')], icon).get('accept');
         button.addEventListener('click', () => {
-            // Legacy
-            // let position = player.position + totalRoll;
-            // if (position >= this.spaces.length) {
-            //     position = position % this.spaces.length;
-            //     player.deposit(settings.goCollect);
-            //     console.log(`passed start, collect \$${settings.goCollect}`);
-            // }
-            // console.log(`${player.name} landed on ${position}/${this.spaces.length - 1}!`);
-            // player.moveTo(position);
             player.moveForward(totalRoll);
         });
     }
@@ -764,8 +775,13 @@ class Game {
 }
 
 class MonopolyGame extends Game {
+    // STUB
     constructor() {
         super();
+    }
+
+    setup() {
+        super.setup();
     }
 }
 
@@ -783,10 +799,10 @@ class GameHelpers {
         game.communityChestCards = GameDataHelpers.loadCommunityChestCards();
     }
     static setupPlayers() {
-        game.addPlayer({ name: 'P1', money: settings.startingMoney, icon: '🚗' });
-        game.addPlayer({ name: 'P2', money: settings.startingMoney, icon: '🥾' });
-        game.addPlayer({ name: 'P3', money: settings.startingMoney, icon: '🐕' });
-        game.addPlayer({ name: 'P4', money: settings.startingMoney, icon: '🐈' });
+        game.addPlayer({ name: 'P1', money: settings.startingAmount, icon: '🚗' });
+        game.addPlayer({ name: 'P2', money: settings.startingAmount, icon: '🥾' });
+        game.addPlayer({ name: 'P3', money: settings.startingAmount, icon: '🐕' });
+        game.addPlayer({ name: 'P4', money: settings.startingAmount, icon: '🐈' });
     }
     static setupEventListeners() {
         window.removeEventListener('resize', this.resizeBoard);
