@@ -179,7 +179,6 @@ class Board extends GameAsset {
         gameDOM.append(this.boardLayer);
     }
 }
-
 class Player extends GameAsset {
     constructor(param) {
         super(param);
@@ -188,7 +187,8 @@ class Player extends GameAsset {
         this.money = param.money;
         this.state = 'playing';
         this.stateTurn = 0;
-        this.position = 0;
+        this.position = 0; // Remove this after moveForward/moveBackward is done
+        this.currentSpace;
 
         this.playerStatsWrapper = document.createElement('div');
         this.playerStatsWrapper.className = 'playerStats';
@@ -222,11 +222,7 @@ class Player extends GameAsset {
         this.playerPieceDOM = document.createElement('div');
         this.playerPieceDOM.className = 'piece';
         this.playerPieceDOM.innerText = this.icon;
-        this.updatePiece();
-
         board.pieceLayer.append(this.playerPieceDOM);
-
-        this.updateDisplay();
     }
 
     updateDisplay() {
@@ -246,19 +242,56 @@ class Player extends GameAsset {
     }
 
     updatePiece(position = this.position) {
-        // CURRENT:
-        // Position has 1 cell offset on iOS device [FIXED?]
-        const space = game.spaces[this.position];
-        this.playerPieceDOM.style.left = `${(space.column - 1) / 11 * 100}%`;
-        this.playerPieceDOM.style.top = `${(space.row - 1) / 11 * 100}%`;
+        this.playerPieceDOM.style.left = `${(this.currentSpace.column - 1) / 11 * 100}%`;
+        this.playerPieceDOM.style.top = `${(this.currentSpace.row - 1) / 11 * 100}%`;
     }
 
-    moveTo(position) {
-        this.position = position;
-        const space = game.spaces[this.position];
-        space.resolve(this);
+    moveTo(nameId = 'start', resolveSpace = true) {
+        this.currentSpace = game.spaceMap.get(nameId);
+        
+        console.log(`${this.name} moves to [${this.currentSpace.name}]!`);        
+        if (resolveSpace) {
+            this.currentSpace.resolve(this);
+        }
         this.updateDisplay();
-        this.updatePiece();
+
+        return this.currentSpace;
+    }
+
+    moveForward(steps = 1, resolveSpace = true) {
+        // Assume steps > 0
+        for (let i = 0; i < steps; i++) {
+            this.currentSpace = game.spaceMap.get(this.currentSpace.nextId);
+            // Add animation between steps here
+            // Collect if current position is start 
+        }
+
+        console.log(`${this.name} moves to [${this.currentSpace.name}!]`);
+        if (resolveSpace) {
+            this.currentSpace.resolve(this);
+        }
+
+        this.updateDisplay();
+
+        return this.currentSpace;        
+    }
+
+    moveBackward(steps = 1, resolveSpace = true) {
+        // Assume steps > 0
+        for (let i = 0; i < steps; i++) {
+            this.currentSpace = game.spaceMap.get(this.currentSpace.prevId);
+            // Add animation between steps here
+            // Collect if current position is start 
+        }
+
+        console.log(`${this.name} landed on ${this.currentSpace.name}!`);
+        if (resolveSpace) {
+            this.currentSpace.resolve(this);
+        }
+
+        this.updateDisplay();
+
+        return this.currentSpace;        
     }
 
     transfer(amount, player) {
@@ -281,11 +314,16 @@ class Player extends GameAsset {
     }
 }
 // TO DO: 
-// *Refractor so every subclass sets icon
+// *Refactor so every subclass sets icon
 class Space extends GameAsset {
     constructor(param) {
         super(param);
         this.name = param.name;
+
+        this.nameId = param.nameId;
+        this.nextId = param.nextId;
+        this.prevId = param.prevId;
+
         this.type = param.type;
         this.column = param.column;
         this.row = param.row;
@@ -373,7 +411,7 @@ class RandomAction extends Space {
                 };
 
                 switch (card.type.toLowerCase()) {
-                    case 'movetoproperty':
+                    case 'moveToproperty':
                         resolveButtonText = `Move to ${card.propertyName}`;
                         resolveFunction = () => {
                             const propertySpaceIndex = game.spaces.findIndex((space) => space.name === card.propertyName); player.moveTo(propertySpaceIndex);
@@ -411,10 +449,7 @@ class GoToJail extends Space {
     }
 
     resolve(player) {
-        console.log(`Moving ${player.name} to jail`);
-        const jailSpaceIndex = game.spaces.findIndex((space) => space.type === 'jail');
-        //Assume that spaces has at least 1 jail
-        player.moveTo(jailSpaceIndex);
+        player.moveTo('jail');
     }
 }
 
@@ -556,10 +591,14 @@ class Property extends Space {
     }
 }
 
+// TO DO: 
+// *Getter/Setter for startSpace
 class Game {
     constructor() {
         this.players = [];
-        this.spaces = [];
+        this.spaces = []; //Remove this after map is implemented
+        this.spaceMap = new Map();
+        this.startSpace;
         this.chanceCards = [];
         this.communityChestCards = [];
         this.currentPlayerIndex = 0;
@@ -576,34 +615,39 @@ class Game {
     }
 
     addPlayer(param) {
-        // param.game = this;
-        this.players.push(new Player(param));
+        const newPlayer = new Player(param);
+        this.players.push(newPlayer);
+        newPlayer.moveTo('start', false);
+        newPlayer.updateDisplay();
     }
 
     addSpace(param) {
-        param.position = this.spaces.length;
+        param.position = this.spaces.length; // Remove this after map is implemented
+        let newSpace;
         switch (param.type.toLowerCase()) {
             case 'property':
-                this.spaces.push(new Property(param));
+                newSpace = new Property(param);
                 break;
             case 'jail':
-                this.spaces.push(new Jail(param));
+                newSpace = new Jail(param);
                 break;
             case 'gotojail':
-                this.spaces.push(new GoToJail(param));
+                newSpace = new GoToJail(param);
                 break;
             case 'chance':
-                this.spaces.push(new RandomAction(param));
+                newSpace = new RandomAction(param);
                 break;
             case 'chest':
-                this.spaces.push(new RandomAction(param));
+                newSpace = new RandomAction(param);
                 break;
             case 'tax':
-                this.spaces.push(new Tax(param));
+                newSpace = new Tax(param);
                 break;
             default:
-                this.spaces.push(new Space(param));
+                newSpace = new Space(param);
         }
+        this.spaces.push(newSpace); // Remove this after map is implemented - still needed for checking color groups
+        this.spaceMap.set(newSpace.nameId, newSpace);
     }
 
     start() {
@@ -654,14 +698,16 @@ class Game {
         const message = `Rolled ${totalRoll}`;
         const button = UIHelpers.dialog(player, message, [new Option('accept', 'Move')], icon).get('accept');
         button.addEventListener('click', () => {
-            let position = player.position + totalRoll;
-            if (position >= this.spaces.length) {
-                position = position % this.spaces.length;
-                player.deposit(settings.goCollect);
-                console.log(`passed start, collect \$${settings.goCollect}`);
-            }
-            console.log(`${player.name} landed on ${position}/${this.spaces.length - 1}!`);
-            player.moveTo(position);
+            // Legacy
+            // let position = player.position + totalRoll;
+            // if (position >= this.spaces.length) {
+            //     position = position % this.spaces.length;
+            //     player.deposit(settings.goCollect);
+            //     console.log(`passed start, collect \$${settings.goCollect}`);
+            // }
+            // console.log(`${player.name} landed on ${position}/${this.spaces.length - 1}!`);
+            // player.moveTo(position);
+            player.moveForward(totalRoll);
         });
     }
 
@@ -726,6 +772,7 @@ class GameHelpers {
 
         //Spaces data is already loaded in another js file (See script header or codepen settings)
         GameDataHelpers.loadSpaces().forEach((space) => game.addSpace(space));
+        game.startSpace = game.spaceMap.get('start');
         game.chanceCards = GameDataHelpers.loadChanceCards();
         game.communityChestCards = GameDataHelpers.loadCommunityChestCards();
     }
