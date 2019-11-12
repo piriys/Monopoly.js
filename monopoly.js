@@ -21,10 +21,12 @@ document.addEventListener('DOMContentLoaded', function () {
     gameDOM = document.createElement('div');
     gameDOM.id = 'game';
     gameLoaderDOM.append(gameDOM);
+
     GameHelpers.setupGame();
     GameHelpers.setupPlayers();
     GameHelpers.setupEventListeners();
     game.start();
+    game.currentPlayer.currentSpace.updateSpaceDetailDisplay();
 }, false);
 
 
@@ -60,14 +62,14 @@ class UIHelpers {
         board.inputDisplay.innerHTML = '';
         const header = document.createElement('h2');
         header.innerText = `${player.name}: ${message}`;
-        board.inputDisplay.append(header);   
+        board.inputDisplay.append(header);
 
-        if(icon !== undefined) {
+        if (icon !== undefined) {
             const dialogIcon = document.createElement('div');
             dialogIcon.className = 'dialogIcon';
             dialogIcon.innerText = icon;
-            board.inputDisplay.append(dialogIcon);  
-        }           
+            board.inputDisplay.append(dialogIcon);
+        }
     }
     static dialog(player, message, options = [new Option()], icon = '') {
         const buttons = new Map();
@@ -95,7 +97,17 @@ class UIHelpers {
 
         return buttons;
     }
+    static spaceDetail(space) {
+        board.spaceDetailDisplay.innerHTML = '';
 
+        const header = document.createElement('h2');
+        if (space !== undefined) {
+            header.innerText = `${space.name}`;
+        } else {
+            header.innerText = '[HOVER SPACE TO SEE DETAILS]';
+        }
+        board.spaceDetailDisplay.append(header);
+    }
     static rollDice(player) {
         const message = `${player.name}'s Turn`;
         const button = this.dialog(player, message, [new Option('accept', 'Roll Dice')]).get('accept');
@@ -201,7 +213,7 @@ class Player extends GameAsset {
         this.money = param.money;
         this.state = 'playing';
         this.stateTurn = 0;
-        this.currentSpace;
+        this.currentSpace = undefined;
 
         this.playerStatsWrapper = document.createElement('div');
         this.playerStatsWrapper.className = 'playerStats';
@@ -241,6 +253,7 @@ class Player extends GameAsset {
     updateDisplay() {
         this.updateStatsDisplay();
         this.updatePiece();
+        this.currentSpace.updateSpaceDetailDisplay();
     }
 
     updateStatsDisplay() {
@@ -259,8 +272,8 @@ class Player extends GameAsset {
     }
 
     moveTo(nameId = 'start', resolveSpace = true, collectPassGo = false) {
-        if(game.spaceMap.has(nameId)) {
-            UIHelpers.notice(this, 'Moving...');   
+        if (game.spaceMap.has(nameId)) {
+            UIHelpers.notice(this, 'Moving...');
             this.currentSpace = game.spaceMap.get(nameId);
 
             console.log(`${this.name} moves to [${this.currentSpace.name}]!`);
@@ -271,7 +284,7 @@ class Player extends GameAsset {
                 }
 
                 this.updateDisplay();
-            }, settings.movementStepDelay);   
+            }, settings.movementStepDelay);
         } else {
             throw 'nameId not found.';
         }
@@ -280,6 +293,8 @@ class Player extends GameAsset {
     moveForward(steps = 1, resolveSpace = true, collectPassGo = true) {
         // Assume steps > 0
         UIHelpers.notice(this, 'Moving...');
+        this.playerPieceDOM.style.animation = `bouncePlayerPiece ${(settings.movementStepDelay / 1000) / 2}s alternate infinite`;       
+        
         let i = 0;
         for (i = 0; i < steps; i++) {
             window.setTimeout(() => {
@@ -298,7 +313,8 @@ class Player extends GameAsset {
                 this.currentSpace.resolve(this);
             }
             this.updateDisplay();
-        }, settings.movementStepDelay * i);  
+            this.playerPieceDOM.style.animation = '';
+        }, settings.movementStepDelay * i);
     }
 
     moveBackward(steps = 1, resolveSpace = true) {
@@ -318,7 +334,7 @@ class Player extends GameAsset {
                 this.currentSpace.resolve(this);
             }
             this.updateDisplay();
-        }, settings.movementStepDelay * i);   
+        }, settings.movementStepDelay * i);
     }
 
     transfer(amount, player) {
@@ -336,7 +352,7 @@ class Player extends GameAsset {
 
     withdraw(amount) {
         //Assume amount >= 0
-        console.log(`withdrawing ${amount} from player[${this.name}]`)
+        console.log(`withdrawing ${amount} from player[${this.name}]`);
         this.money -= amount;
         this.updateDisplay();
     }
@@ -374,11 +390,25 @@ class Space extends GameAsset {
 
         board.boardLayer.append(this.boardSpaceWrapper);
 
+        this.boardSpaceWrapper.addEventListener('mouseenter', () => {
+            this.updateSpaceDetailDisplay();
+        });
+        this.boardSpaceWrapper.addEventListener('mouseleave', () => {
+            game.currentPlayer.currentSpace.updateSpaceDetailDisplay();
+        });
         this.updateSpaceDisplay();
     }
 
     updateSpaceDisplay() {
         this.spaceNameDOM.innerText = this.name;
+    }
+
+    updateSpaceDetailDisplay() {
+        board.spaceDetailDisplay.innerHTML = '';
+
+        const header = document.createElement('h2');
+        header.innerText = `${this.name}`;
+        board.spaceDetailDisplay.append(header);
     }
 
     resolve() {
@@ -482,7 +512,7 @@ class GoToJail extends Space {
         const button = UIHelpers.dialog(player, message).get('accept');
         button.addEventListener('click', () => {
             player.moveTo('jail');
-        });          
+        });
     }
 }
 
@@ -551,6 +581,7 @@ class Property extends Space {
     updateDisplay() {
         this.updateSpaceDisplay();
         this.updatePropertyDisplay();
+        this.updateSpaceDetailDisplay();
     }
 
     updatePropertyDisplay() {
@@ -565,6 +596,10 @@ class Property extends Space {
 
             this.upgradeDOM.innerText = upgradeIcons[this.upgradeLevel - 1];
         }
+    }
+
+    updateSpaceDetailDisplay() {
+        super.updateSpaceDetailDisplay();
     }
 
     resolve(player) {
@@ -637,7 +672,7 @@ class Game {
         this.currentPlayerIndex = 0;
 
         this.spaceMap = new Map();
-        this.startSpace;
+        this.startSpace = undefined;
 
         // Monopoly only
         this.propertyGroups = new Map();
@@ -701,7 +736,9 @@ class Game {
     play() {
         this.currentPlayer = this.players[this.currentPlayerIndex];
         const player = this.currentPlayer;
+
         if (player.state !== 'bankrupt') {
+            player.currentSpace.updateSpaceDetailDisplay();
             if (player.state === 'playing') {
                 const button = UIHelpers.rollDice(player);
                 button.addEventListener('click', () => {
@@ -716,6 +753,7 @@ class Game {
                     if (player.stateTurn === 0) {
                         player.state = 'playing';
                     }
+
                     player.updateDisplay();
                     this.finishTurn();
                 });
@@ -790,11 +828,11 @@ class Game {
         const button = UIHelpers.dialog(player, message, [new Option('accept', 'Reset Game')], `🏆${player.icon}🏆`).get('accept');
 
         button.addEventListener('click', () => {
-            // GameHelpers.setupBoard();
             GameHelpers.setupGame();
             GameHelpers.setupPlayers();
             GameHelpers.setupEventListeners();
             game.start();
+            game.currentPlayer.currentSpace.updateSpaceDetailDisplay();
         });
     }
 }

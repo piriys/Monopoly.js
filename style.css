@@ -8,6 +8,7 @@
   padding: 0;
 }
 #gameLoader {
+  user-select: none;
   position: fixed;
   backface-visibility: hidden; /* Position fixed for mobile */
   z-index: 1000;
@@ -41,6 +42,7 @@ button {
   padding: 1em;
   border: 0px;
   z-index: 1002;
+  cursor: pointer;
 }
 #stats {
   flex-direction: column;
@@ -55,6 +57,8 @@ button {
   grid-row: 7/11;
 }
 #spaceDetail {
+  flex-direction: column;
+  justify-content: space-around;
   grid-column: 8/11;
   grid-row: 7/11;
 }
@@ -79,6 +83,7 @@ button {
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
+  cursor: help;
 }
 .spaceNumber {
   top: 0;
@@ -117,4 +122,13 @@ button {
   text-align: center;
   z-index: 1003;
   transition: all 0.5s ease-out;
+}
+
+@keyframes bouncePlayerPiece {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-1.5em);
+  }
 }
