@@ -116,5 +116,5 @@ button {
   align-items: center;
   text-align: center;
   z-index: 1003;
-  transition: all 2s ease-in;
+  transition: all 0.5s ease-out;
 }

@@ -1,9 +1,10 @@
 console.clear();
 // Constants
 const settings = {
-    goCollectAmountAmount: 10,
+    goCollectAmount: 10,
     dieCount: 2,
     startingAmount: 500,
+    movementStepDelay: 500,
     jailedTurn: 3,
     rentMultiplier: 2000, //For faster game
     taxMultiplier: 30 //For faster game
@@ -54,6 +55,19 @@ class UIHelpers {
     static menu(player, message, options = [new Option()], icon = '') {
         const buttons = new Map();
         return buttons;
+    }
+    static notice(player, message, icon) {
+        board.inputDisplay.innerHTML = '';
+        const header = document.createElement('h2');
+        header.innerText = `${player.name}: ${message}`;
+        board.inputDisplay.append(header);   
+
+        if(icon !== undefined) {
+            const dialogIcon = document.createElement('div');
+            dialogIcon.className = 'dialogIcon';
+            dialogIcon.innerText = icon;
+            board.inputDisplay.append(dialogIcon);  
+        }           
     }
     static dialog(player, message, options = [new Option()], icon = '') {
         const buttons = new Map();
@@ -244,64 +258,67 @@ class Player extends GameAsset {
         this.playerPieceDOM.style.top = `${(this.currentSpace.row - 1) / 11 * 100}%`;
     }
 
-    moveTo(nameId = 'start', resolveSpace = false, collectPassGo = false) {
-        // TO DO:
-        // *Add exit loop/throw exception if not found
-        if(this.currentSpace === undefined) {
+    moveTo(nameId = 'start', resolveSpace = true, collectPassGo = false) {
+        if(game.spaceMap.has(nameId)) {
+            UIHelpers.notice(this, 'Moving...');   
             this.currentSpace = game.spaceMap.get(nameId);
-        } else {
-            while (this.currentSpace.nameId !== nameId) {
-                this.currentSpace = game.spaceMap.get(this.currentSpace.nextId);
-                // Add animation between steps here
-                if (collectPassGo) {
-                    this.deposit(settings.goCollectAmount);
+
+            console.log(`${this.name} moves to [${this.currentSpace.name}]!`);
+
+            window.setTimeout(() => {
+                if (resolveSpace) {
+                    this.currentSpace.resolve(this);
                 }
-            }
-        }
 
-        console.log(`${this.name} moves to [${this.currentSpace.name}]!`);        
-        if (resolveSpace) {
-            this.currentSpace.resolve(this);
+                this.updateDisplay();
+            }, settings.movementStepDelay);   
+        } else {
+            throw 'nameId not found.';
         }
-        this.updateDisplay();
-
-        return this.currentSpace;
     }
 
     moveForward(steps = 1, resolveSpace = true, collectPassGo = true) {
         // Assume steps > 0
-        for (let i = 0; i < steps; i++) {
-            this.currentSpace = game.spaceMap.get(this.currentSpace.nextId);
-            // Add animation between steps here
-            // Collect if current position is start 
+        UIHelpers.notice(this, 'Moving...');
+        let i = 0;
+        for (i = 0; i < steps; i++) {
+            window.setTimeout(() => {
+                this.currentSpace = game.spaceMap.get(this.currentSpace.nextId);
+                if (collectPassGo && this.currentSpace.nameId === 'start') {
+                    console.log('collecting pass go');
+                    this.deposit(settings.goCollectAmount);
+                }
+                this.updateDisplay();
+            }, settings.movementStepDelay * i);
         }
 
-        console.log(`${this.name} moves to [${this.currentSpace.name}!]`);
-        if (resolveSpace) {
-            this.currentSpace.resolve(this);
-        }
-
-        this.updateDisplay();
-
-        return this.currentSpace;        
+        window.setTimeout(() => {
+            console.log(`${this.name} landed on ${this.currentSpace.name}!`);
+            if (resolveSpace) {
+                this.currentSpace.resolve(this);
+            }
+            this.updateDisplay();
+        }, settings.movementStepDelay * i);  
     }
 
     moveBackward(steps = 1, resolveSpace = true) {
         // Assume steps > 0
-        for (let i = 0; i < steps; i++) {
-            this.currentSpace = game.spaceMap.get(this.currentSpace.prevId);
-            // Add animation between steps here
-
+        UIHelpers.notice(this, 'Moving...');
+        let i = 0;
+        for (i = 0; i < steps; i++) {
+            window.setTimeout(() => {
+                this.currentSpace = game.spaceMap.get(this.currentSpace.prevId);
+                this.updateDisplay();
+            }, settings.movementStepDelay * i);
         }
 
-        console.log(`${this.name} landed on ${this.currentSpace.name}!`);
-        if (resolveSpace) {
-            this.currentSpace.resolve(this);
-        }
-
-        this.updateDisplay();
-
-        return this.currentSpace;        
+        window.setTimeout(() => {
+            console.log(`${this.name} landed on ${this.currentSpace.name}!`);
+            if (resolveSpace) {
+                this.currentSpace.resolve(this);
+            }
+            this.updateDisplay();
+        }, settings.movementStepDelay * i);   
     }
 
     transfer(amount, player) {
@@ -319,6 +336,7 @@ class Player extends GameAsset {
 
     withdraw(amount) {
         //Assume amount >= 0
+        console.log(`withdrawing ${amount} from player[${this.name}]`)
         this.money -= amount;
         this.updateDisplay();
     }
@@ -368,7 +386,8 @@ class Space extends GameAsset {
         game.finishTurn();
     }
 }
-
+// TO DO:
+// *Tax is not taking money out
 class Tax extends Space {
     constructor(param) {
         super(param);
@@ -421,8 +440,9 @@ class RandomAction extends Space {
                 switch (card.type.toLowerCase()) {
                     // Change this so it looks up nameId instead 
                     case 'moveto':
-                        resolveButtonText = `Move to ${card.nameId}`;
-                        resolveFunction = () => { 
+                        const space = game.spaceMap.get(card.nameId);
+                        resolveButtonText = `Move to ${space.name}`;
+                        resolveFunction = () => {
                             player.moveTo(card.nameId, card.resolveSpace, card.collectPassGo);
                             game.finishTurn();
                         };
@@ -458,7 +478,11 @@ class GoToJail extends Space {
     }
 
     resolve(player) {
-        player.moveTo('jail');
+        const message = 'Move to Jail';
+        const button = UIHelpers.dialog(player, message).get('accept');
+        button.addEventListener('click', () => {
+            player.moveTo('jail');
+        });          
     }
 }
 
@@ -567,8 +591,8 @@ class Property extends Space {
             //check if player own all property in color group
             let ownedAll = true;
 
-            for(const property of game.propertyGroups.get(this.color).value) {
-                if(property.owner !== player) {
+            for (const property of game.propertyGroups.get(this.color).value) {
+                if (property.owner !== player) {
                     ownedAll = false;
                     break;
                 }
@@ -614,7 +638,7 @@ class Game {
 
         this.spaceMap = new Map();
         this.startSpace;
-        
+
         // Monopoly only
         this.propertyGroups = new Map();
         this.chanceCards = [];
@@ -625,7 +649,7 @@ class Game {
         this.turnCount = 0;
         this.players = [];
         this.currentPlayerIndex = 0;
-        
+
         this.spaceMap = new Map();
 
         this.chanceCards = [];
@@ -644,8 +668,8 @@ class Game {
         switch (param.type.toLowerCase()) {
             case 'property':
                 newSpace = new Property(param);
-                if(!this.propertyGroups.has(newSpace.color)) {
-                    this.propertyGroups.set(newSpace.color, {value: []});
+                if (!this.propertyGroups.has(newSpace.color)) {
+                    this.propertyGroups.set(newSpace.color, { value: [] });
                 }
                 this.propertyGroups.get(newSpace.color).value.push(newSpace);
                 break;
@@ -681,7 +705,6 @@ class Game {
             if (player.state === 'playing') {
                 const button = UIHelpers.rollDice(player);
                 button.addEventListener('click', () => {
-                    console.log('roll dice');
                     this.rollDice();
                 });
             } else if (player.state === 'jailed') {
@@ -707,6 +730,8 @@ class Game {
         const dieFaces = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
         let totalRoll = 0;
         let icon = '';
+
+        console.log(`roll dice, money: ${player.money}`);
 
         for (let i = 0; i < count; i++) {
             const roll = MathHelpers.randomInt(1, 6);

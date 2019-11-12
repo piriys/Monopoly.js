@@ -15,7 +15,7 @@ class GameDataHelpers {
             "icon": "🛫",
             "type": "moveto",
             "nameId": "st_charles_place",
-            "resolveSpace": false,            
+            "resolveSpace": false,
             "collectPassGo": true
         },
         {
@@ -78,7 +78,7 @@ class GameDataHelpers {
         {
             "nextId": "baltic_avenue",
             "prevId": "mediteranean_avenue",
-            "nameId": "community_chest_1",            
+            "nameId": "community_chest_1",
             "name": "Community Chest",
             "type": "chest",
             "column": 9,
@@ -87,7 +87,7 @@ class GameDataHelpers {
         {
             "nextId": "income_tax_1",
             "prevId": "community_chest_1",
-            "nameId": "baltic_avenue",               
+            "nameId": "baltic_avenue",
             "name": "Baltic Avenue",
             "type": "property",
             "column": 8,
@@ -113,7 +113,7 @@ class GameDataHelpers {
         {
             "nextId": "reading_railroad",
             "prevId": "baltic_avenue",
-            "nameId": "income_tax_1",               
+            "nameId": "income_tax_1",
             "name": "Income Tax",
             "type": "tax",
             "column": 7,
@@ -123,7 +123,7 @@ class GameDataHelpers {
         {
             "nextId": "oriental_avenue",
             "prevId": "income_tax_1",
-            "nameId": "reading_railroad",                
+            "nameId": "reading_railroad",
             "name": "Reading Railroad",
             "type": "property",
             "column": 6,
@@ -149,7 +149,7 @@ class GameDataHelpers {
         {
             "nextId": "chance_1",
             "prevId": "reading_railroad",
-            "nameId": "oriental_avenue",            
+            "nameId": "oriental_avenue",
             "name": "Oriental Avenue",
             "type": "property",
             "column": 5,
@@ -175,7 +175,7 @@ class GameDataHelpers {
         {
             "nextId": "vermont_avenue",
             "prevId": "oriental_avenue",
-            "nameId": "chance_1",              
+            "nameId": "chance_1",
             "name": "Chance",
             "type": "chance",
             "column": 4,
@@ -184,7 +184,7 @@ class GameDataHelpers {
         {
             "nextId": "connecticut_avenue",
             "prevId": "chance_1",
-            "nameId": "vermont_avenue",              
+            "nameId": "vermont_avenue",
             "name": "Vermont Avenue",
             "type": "property",
             "column": 3,
@@ -210,7 +210,7 @@ class GameDataHelpers {
         {
             "nextId": "jail",
             "prevId": "vermont_avenue",
-            "nameId": "connecticut_avenue",              
+            "nameId": "connecticut_avenue",
             "name": "Connecticut Avenue",
             "type": "property",
             "column": 2,
@@ -236,7 +236,7 @@ class GameDataHelpers {
         {
             "nextId": "st_charles_place",
             "prevId": "connecticut_avenue",
-            "nameId": "jail",                
+            "nameId": "jail",
             "name": "Jail",
             "type": "jail",
             "column": 1,
@@ -245,7 +245,7 @@ class GameDataHelpers {
         {
             "nextId": "electric_company",
             "prevId": "jail",
-            "nameId": "st_charles_place",                
+            "nameId": "st_charles_place",
             "name": "St. Charles Place",
             "type": "property",
             "column": 1,
@@ -271,7 +271,7 @@ class GameDataHelpers {
         {
             "nextId": "states_avenue",
             "prevId": "st_charles_place",
-            "nameId": "electric_company",              
+            "nameId": "electric_company",
             "name": "Electric Company",
             "type": "property",
             "column": 1,
@@ -297,7 +297,7 @@ class GameDataHelpers {
         {
             "nextId": "virginia_avenue",
             "prevId": "electric_company",
-            "nameId": "states_avenue",            
+            "nameId": "states_avenue",
             "name": "States Avenue",
             "type": "property",
             "column": 1,
@@ -323,7 +323,7 @@ class GameDataHelpers {
         {
             "nextId": "pensylvania_railroad",
             "prevId": "states_avenue",
-            "nameId": "virginia_avenue",               
+            "nameId": "virginia_avenue",
             "name": "Virginia Avenue",
             "type": "property",
             "column": 1,
@@ -349,7 +349,7 @@ class GameDataHelpers {
         {
             "nextId": "st_james_place",
             "prevId": "virginia_avenue",
-            "nameId": "pensylvania_railroad",              
+            "nameId": "pensylvania_railroad",
             "name": "Pensylvania Railroad",
             "type": "property",
             "column": 1,
@@ -375,7 +375,7 @@ class GameDataHelpers {
         {
             "nextId": "community_chest_2",
             "prevId": "pensylvania_railroad",
-            "nameId": "st_james_place",                
+            "nameId": "st_james_place",
             "name": "St. James Place",
             "type": "property",
             "column": 1,
@@ -401,7 +401,7 @@ class GameDataHelpers {
         {
             "nextId": "tennessee_avenue",
             "prevId": "st_james_place",
-            "nameId": "community_chest_2",             
+            "nameId": "community_chest_2",
             "name": "Community Chest",
             "type": "chest",
             "column": 1,
@@ -410,7 +410,7 @@ class GameDataHelpers {
         {
             "nextId": "new_york_avenue",
             "prevId": "community_chest_2",
-            "nameId": "tennessee_avenue",              
+            "nameId": "tennessee_avenue",
             "name": "Tennessee Avenue",
             "type": "property",
             "column": 1,
@@ -436,7 +436,7 @@ class GameDataHelpers {
         {
             "nextId": "free_parking",
             "prevId": "tennessee_avenue",
-            "nameId": "new_york_avenue",              
+            "nameId": "new_york_avenue",
             "name": "New York Avenue",
             "type": "property",
             "column": 1,
@@ -462,7 +462,7 @@ class GameDataHelpers {
         {
             "nextId": "kentucky_avenue",
             "prevId": "new_york_avenue",
-            "nameId": "free_parking",                 
+            "nameId": "free_parking",
             "name": "Free Parking",
             "column": 1,
             "row": 1,
@@ -471,7 +471,7 @@ class GameDataHelpers {
         {
             "nextId": "chance_2",
             "prevId": "free_parking",
-            "nameId": "kentucky_avenue",              
+            "nameId": "kentucky_avenue",
             "name": "Kentucky Avenue",
             "type": "property",
             "column": 2,
@@ -497,7 +497,7 @@ class GameDataHelpers {
         {
             "nextId": "indiana_avenue",
             "prevId": "kentucky_avenue",
-            "nameId": "chance_2",              
+            "nameId": "chance_2",
             "name": "Chance",
             "type": "chance",
             "column": 3,
@@ -506,7 +506,7 @@ class GameDataHelpers {
         {
             "nextId": "illinois_avenue",
             "prevId": "chance_2",
-            "nameId": "indiana_avenue",            
+            "nameId": "indiana_avenue",
             "name": "Indiana Avenue",
             "type": "property",
             "column": 4,
@@ -532,7 +532,7 @@ class GameDataHelpers {
         {
             "nextId": "b_and_o_railroad",
             "prevId": "indiana_avenue",
-            "nameId": "illinois_avenue",                  
+            "nameId": "illinois_avenue",
             "name": "Illinois Avenue",
             "type": "property",
             "column": 5,
@@ -584,7 +584,7 @@ class GameDataHelpers {
         {
             "nextId": "ventnor_avenue",
             "prevId": "b_and_o_railroad",
-            "nameId": "atlantic_avenue",            
+            "nameId": "atlantic_avenue",
             "name": "Atlantic Avenue",
             "type": "property",
             "column": 7,
@@ -610,7 +610,7 @@ class GameDataHelpers {
         {
             "nextId": "water_works",
             "prevId": "atlantic_avenue",
-            "nameId": "ventnor_avenue",              
+            "nameId": "ventnor_avenue",
             "name": "Ventnor Avenue",
             "type": "property",
             "column": 8,
@@ -636,7 +636,7 @@ class GameDataHelpers {
         {
             "nextId": "marvin_gardens",
             "prevId": "ventnor_avenue",
-            "nameId": "water_works",                  
+            "nameId": "water_works",
             "name": "Water Works",
             "type": "property",
             "column": 9,
@@ -662,7 +662,7 @@ class GameDataHelpers {
         {
             "nextId": "go_to_jail",
             "prevId": "water_works",
-            "nameId": "marvin_gardens",                
+            "nameId": "marvin_gardens",
             "name": "Marvin Gardens",
             "type": "property",
             "column": 10,
@@ -688,7 +688,7 @@ class GameDataHelpers {
         {
             "nextId": "pacific_avenue",
             "prevId": "marvin_gardens",
-            "nameId": "go_to_jail",                 
+            "nameId": "go_to_jail",
             "name": "Go To Jail",
             "type": "goToJail",
             "column": 11,
@@ -697,7 +697,7 @@ class GameDataHelpers {
         {
             "nextId": "north_carolina_avenue",
             "prevId": "go_to_jail",
-            "nameId": "pacific_avenue",              
+            "nameId": "pacific_avenue",
             "name": "Pacific Avenue",
             "type": "property",
             "column": 11,
@@ -723,7 +723,7 @@ class GameDataHelpers {
         {
             "nextId": "community_chest_3",
             "prevId": "pacific_avenue",
-            "nameId": "north_carolina_avenue",              
+            "nameId": "north_carolina_avenue",
             "name": "North Carolina Avenue",
             "type": "property",
             "column": 11,
@@ -749,7 +749,7 @@ class GameDataHelpers {
         {
             "nextId": "pennsylvania_avenue",
             "prevId": "north_carolina_avenue",
-            "nameId": "community_chest_3",              
+            "nameId": "community_chest_3",
             "name": "Community Chest",
             "type": "chest",
             "column": 11,
@@ -758,7 +758,7 @@ class GameDataHelpers {
         {
             "nextId": "short_line",
             "prevId": "community_chest_3",
-            "nameId": "pennsylvania_avenue",      
+            "nameId": "pennsylvania_avenue",
             "name": "Pennsylvania Avenue",
             "type": "property",
             "column": 11,
@@ -810,7 +810,7 @@ class GameDataHelpers {
         {
             "nextId": "park_place",
             "prevId": "short_line",
-            "nameId": "chance_3",            
+            "nameId": "chance_3",
             "name": "Chance",
             "type": "chance",
             "column": 11,
@@ -819,7 +819,7 @@ class GameDataHelpers {
         {
             "nextId": "income_tax_2",
             "prevId": "chance_3",
-            "nameId": "park_place",                 
+            "nameId": "park_place",
             "name": "Park Place",
             "type": "property",
             "column": 11,
@@ -845,7 +845,7 @@ class GameDataHelpers {
         {
             "nextId": "boardwalk",
             "prevId": "park_place",
-            "nameId": "income_tax_2",   
+            "nameId": "income_tax_2",
             "name": "Income Tax",
             "type": "tax",
             "column": 11,
