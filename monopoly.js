@@ -198,6 +198,15 @@ class Board extends GameAsset {
         this.spaceDetailDisplay.className = 'hud';
         this.boardLayer.append(this.spaceDetailDisplay);
 
+        this.settingsDisplay = document.createElement('div');
+        this.settingsDisplay.id = 'settings';
+        this.settingsDisplay.className = 'hud';
+        const logo = document.createElement('h1');
+        logo.className = 'logo';
+        logo.innerText = 'MONOPOLY';
+        this.settingsDisplay.append(logo);
+        this.boardLayer.append(this.settingsDisplay);
+
         this.pieceLayer = document.createElement('div');
         this.pieceLayer.id = 'pieceLayer';
 
@@ -409,6 +418,40 @@ class Space extends GameAsset {
         const header = document.createElement('h2');
         header.innerText = `${this.name}`;
         board.spaceDetailDisplay.append(header);
+
+        const iconContainer = document.createElement('div');
+        iconContainer.className = 'detailIcon';
+        iconContainer.style['border'] = `5px solid ${this.color === undefined ? 'white' : this.color}`;
+        let detailIcon = '';
+
+        switch(this.type.toLowerCase()) {
+            case 'start':
+                detailIcon = '🏁';
+                break;
+            case 'property':
+                detailIcon = '🏠';
+                break;
+            case 'tax':
+                detailIcon = '💸';
+                break;
+            case 'chest':
+                detailIcon = '🎁';
+                break;
+            case 'chance':
+                detailIcon = '❔';
+                break;
+            case 'jail': 
+                detailIcon = '🚫';
+                break;
+            case 'gotojail':
+                detailIcon = '🚫';
+                break;
+            default:
+                detailIcon = '🅿';
+                break;           
+        }
+        iconContainer.innerHTML = detailIcon;
+        board.spaceDetailDisplay.append(iconContainer);  
     }
 
     resolve() {
@@ -424,6 +467,10 @@ class Tax extends Space {
         this.amount = param.amount;
     }
 
+    updateSpaceDetailDisplay() {
+        super.updateSpaceDetailDisplay();
+    }
+    
     resolve(player) {
         const button = UIHelpers.payTax(player, this);
         button.addEventListener('click', () => {
@@ -438,6 +485,10 @@ class RandomAction extends Space {
         super(param);
         this.deck = [];
         this.dialogMessage = '';
+    }
+
+    updateSpaceDetailDisplay() {
+        super.updateSpaceDetailDisplay();
     }
 
     resolve(player) {
@@ -507,6 +558,10 @@ class GoToJail extends Space {
         super(param);
     }
 
+    updateSpaceDetailDisplay() {
+        super.updateSpaceDetailDisplay();
+    }
+
     resolve(player) {
         const message = 'Move to Jail';
         const button = UIHelpers.dialog(player, message).get('accept');
@@ -519,6 +574,10 @@ class GoToJail extends Space {
 class Jail extends Space {
     constructor(param) {
         super(param);
+    }
+
+    updateSpaceDetailDisplay() {
+        super.updateSpaceDetailDisplay();  
     }
 
     resolve(player) {
@@ -540,6 +599,7 @@ class Property extends Space {
         this.price = param.price;
         this.rent = param.rent;
         this.upgradeCost = param.upgradeCost;
+        this.upgradeIcons = ['🏠', '🏠🏠', '🏠🏠🏡', '🏠🏠🏡🏡', '🏠🏠🏡🏡🏨'];
         this.owner = undefined;
         this.upgradeLevel = 0;
 
@@ -592,14 +652,44 @@ class Property extends Space {
             this.priceDOM.innerText = `Buy: \$${this.price}`;
         }
         if (this.upgradeLevel > 0) {
-            const upgradeIcons = ['🏠', '🏠🏠', '🏠🏠🏡', '🏠🏠🏡🏡', '🏠🏠🏡🏡🏨'];
-
-            this.upgradeDOM.innerText = upgradeIcons[this.upgradeLevel - 1];
+            this.upgradeDOM.innerText = this.upgradeIcons[this.upgradeLevel - 1];
         }
     }
 
     updateSpaceDetailDisplay() {
         super.updateSpaceDetailDisplay();
+        const detailsContainer = document.createElement('div');
+        detailsContainer.className = 'details';
+        detailsContainer.style.display = 'grid';
+        detailsContainer.style['grid-template-columns'] = '5fr 2fr 2fr';
+
+        ['Upgrade', 'Cost', 'Rent'].forEach((headerText) => {
+            const header = document.createElement('h3');
+            header.innerText = headerText;
+            detailsContainer.append(header);
+        });
+    
+        for(let i = 0; i < this.rent.length; i++) {
+            const upgradeIconDOM = document.createElement('div');
+            const upgradeCostDOM = document.createElement('div');
+            const rentDOM = document.createElement('div');
+
+            if(i === 0) {
+                upgradeIconDOM.innerText = 'No Upgrade';                
+                upgradeCostDOM.innerText = '-'   ;            
+
+            } else {
+                upgradeIconDOM.innerText = this.upgradeIcons[i - 1];
+                upgradeCostDOM.innerText = this.upgradeCost[i - 1];               
+            }
+
+            rentDOM.innerHTML = this.rent[i];
+            detailsContainer.append(upgradeIconDOM);         
+            detailsContainer.append(upgradeCostDOM);
+            detailsContainer.append(rentDOM);                           
+        }
+
+        board.spaceDetailDisplay.append(detailsContainer);         
     }
 
     resolve(player) {
@@ -825,7 +915,7 @@ class Game {
     end() {
         const player = game.players.find((current) => current.state !== 'bankrupt');
         const message = `${player.name} wins!`;
-        const button = UIHelpers.dialog(player, message, [new Option('accept', 'Reset Game')], `🏆${player.icon}🏆`).get('accept');
+        const button = UIHelpers.dialog(player, message, [new Option('accept', 'Reset Game')], `🏆${player.icon}`).get('accept');
 
         button.addEventListener('click', () => {
             GameHelpers.setupGame();
