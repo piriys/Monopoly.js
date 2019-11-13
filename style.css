@@ -35,6 +35,7 @@ button {
   min-width: calc(11 * var(--space-width));
   min-height: calc(11 * var(--space-width));
   transform-origin: center bottom;
+  transition: opacity ease 1s;
 }
 .hud {
   background-color: #2f4f4f;

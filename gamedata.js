@@ -1,7 +1,7 @@
 // TO DO:
 // *Add ajax JSON loading & put these values into JSON
-class GameDataHelpers {
-    static loadChanceCards() {
+const GameData = {
+    chanceCards: () => {
         return [{
             "description": "Advance to Illinois Avenue",
             "icon": "🛫",
@@ -24,8 +24,8 @@ class GameDataHelpers {
             "type": "withdraw",
             "amount": 15
         }];
-    }
-    static loadCommunityChestCards() {
+    },
+    communityChestCards: () => {
         return [{
             "description": "From Sale of Stock You Get $50",
             "icon": "💰",
@@ -38,8 +38,8 @@ class GameDataHelpers {
             "type": "deposit",
             "amount": 20
         }];
-    }
-    static loadSpaces() {
+    },
+    spaces: () => {
         return [{
             "nextId": "mediteranean_avenue",
             "prevId": "boardwalk",
