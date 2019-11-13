@@ -1,6 +1,12 @@
 # Monopoly.js
 
+[![GitHub release](https://img.shields.io/github/v/release/piriys/Monopoly.js.svg)](https://GitHub.com/piriys/Monopoly.js/releases/)
+
 Implementation of monopoly game with javascript.
+
+# Demo
+
+View Demo [Here](https://piriys.github.io/Monopoly.js/)
 
 # Setting Up
 
@@ -18,4 +24,4 @@ By default the script will target `body` DOM and load a game into it. However, y
 <div id="loadHere"></div>
 ```
 
-View Demo [Here](https://piriys.github.io/Monopoly.js/)
+
