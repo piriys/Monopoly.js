@@ -203,7 +203,7 @@ class Board extends GameAsset {
         this.settingsDisplay.className = 'hud';
         const logo = document.createElement('h1');
         logo.className = 'logo';
-        logo.innerText = 'MONOPOLY';
+        logo.innerText = 'MONOPOLY.js';
         this.settingsDisplay.append(logo);
         this.boardLayer.append(this.settingsDisplay);
 
