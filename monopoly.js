@@ -1,8 +1,8 @@
 class LoaderSettings {
     constructor(param = {}) {
         this.loadTarget = param.loadTarget === undefined ? 'body' : param.loadTarget;
-        this.gameDataURL = param.gameDataURL === undefined ? 'gamedata.js' : param.gameDataURL;
-        this.styleURL = param.styleURL === undefined ? 'style.css' : param.styleURL;
+        this.gameDataURL = param.gameDataURL === undefined ? 'https://cdn.jsdelivr.net/gh/piriys/Monopoly.js@v1.0/gamedata.js' : param.gameDataURL;
+        this.styleURL = param.styleURL === undefined ? 'https://cdn.jsdelivr.net/gh/piriys/Monopoly.js@v1.0/style.css' : param.styleURL;
     }
 }
 const Monopoly = {
