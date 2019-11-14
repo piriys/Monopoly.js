@@ -205,7 +205,6 @@ const Monopoly = {
         // Game Assets
         class GameAsset {
             constructor(param) {
-                //this.game = param.game;
                 this.transform = {
                     scale: 0,
                     rotate: new Vector3D(),
@@ -217,17 +216,32 @@ const Monopoly = {
         class Board extends GameAsset {
             constructor(param) {
                 super(param);
-                this.boardLayer = document.createElement('div');
-                this.pieceLayer = document.createElement('div');
-                this.statsDisplay = document.createElement('div');
-                this.inputDisplay = document.createElement('div');
-                this.spaceDetailDisplay = document.createElement('div');
+                this.boardLayer;
+                this.pieceLayer;
             }
 
             setup() {
                 gameDOM.innerHTML = '';
                 this.boardLayer = document.createElement('div');
                 this.boardLayer.id = 'boardLayer';
+                gameDOM.append(this.boardLayer);
+
+                this.pieceLayer = document.createElement('div');
+                this.pieceLayer.id = 'pieceLayer';
+                gameDOM.append(this.pieceLayer);
+            }
+        }
+
+        class MonopolyBoard extends Board {
+            constructor(param) {
+                super(param);
+
+                this.statsDisplay;
+                this.inputDisplay;
+                this.spaceDetailDisplay;
+            }
+            setup() {
+                super.setup();
 
                 this.statsDisplay = document.createElement('div');
                 this.statsDisplay.id = 'stats';
@@ -247,28 +261,26 @@ const Monopoly = {
                 this.settingsDisplay = document.createElement('div');
                 this.settingsDisplay.id = 'settings';
                 this.settingsDisplay.className = 'hud';
+
                 const logo = document.createElement('h1');
                 logo.className = 'logo';
                 logo.innerText = 'MONOPOLY.js';
                 this.settingsDisplay.append(logo);
                 this.boardLayer.append(this.settingsDisplay);
-
-                this.pieceLayer = document.createElement('div');
-                this.pieceLayer.id = 'pieceLayer';
-
-                gameDOM.append(this.pieceLayer);
-                gameDOM.append(this.boardLayer);
             }
         }
+
         class Player extends GameAsset {
             constructor(param) {
                 super(param);
+                this.currentSpace = undefined;
+
+                // Monopoly only
                 this.name = param.name;
                 this.icon = param.icon;
                 this.money = param.money;
                 this.state = 'playing';
                 this.stateTurn = 0;
-                this.currentSpace = undefined;
 
                 this.playerStatsWrapper = document.createElement('div');
                 this.playerStatsWrapper.className = 'playerStats';
@@ -412,8 +424,7 @@ const Monopoly = {
                 this.updateDisplay();
             }
         }
-        // TO DO: 
-        // *Refactor so every subclass sets icon
+
         class Space extends GameAsset {
             constructor(param) {
                 super(param);
@@ -505,8 +516,7 @@ const Monopoly = {
                 game.finishTurn();
             }
         }
-        // TO DO:
-        // *Tax is not taking money out
+
         class Tax extends Space {
             constructor(param) {
                 super(param);
@@ -978,7 +988,7 @@ const Monopoly = {
 
         class GameHelpers {
             static setupGame() {
-                board = new Board();
+                board = new MonopolyBoard();
                 board.setup();
                 game = new Game();
                 game.setup();
