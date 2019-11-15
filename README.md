@@ -10,20 +10,14 @@ View Demo [Here](https://piriys.github.io/Monopoly.js/)
 
 ## Setup
 
+<!--
 ### By Bookmark
 
 Drag and drop the link below onto your bookmark bar. Click on the bookmark to load the game onto any page.
 
-<a class="monopolyjs-bookmark" href="javascript:(() => {
-const monopolyjsDOM = document.createElement('script');
-monopolyjsDOM.setAttribute('src', 'https://cdn.jsdelivr.net/gh/piriys/Monopoly.js@v1.0.1/monopoly.js');
-document.head.append(gameDataDOM);
-monopolyjsDOM.addEventListener('load', () => {
-    Monopoly.load();
-});
-})" title="🎮 Monopoly.js">🎮 Monopoly.js</a>
+<a class="monopolyjs-bookmark" href="javascript:(" title="🎮 Monopoly.js">🎮 Monopoly.js</a>
 
-### By Downloading
+### By Downloading -->
 
 Add `monopoly.js` file into your html and run:
 
