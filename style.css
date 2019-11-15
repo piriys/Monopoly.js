@@ -155,6 +155,9 @@ button {
   transition: all 0.5s ease-out;
 }
 
+/* TO DO:
+* Insert this dynamically in javascript 
+*/
 @keyframes bouncePlayerPiece {
   from {
     transform: translateY(0);

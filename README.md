@@ -4,18 +4,35 @@
 
 Implementation of monopoly game with javascript.
 
-# Demo
+## Demo
 
 View Demo [Here](https://piriys.github.io/Monopoly.js/)
 
-# Setting Up
+## Setup
 
-Simply added `monopoly.js` file into your html and run:
+### By Bookmark
+
+Drag and drop the link below onto your bookmark bar. Click on the bookmark to load the game onto any page.
+
+<a class="monopolyjs-bookmark" href="javascript:(() => {
+const monopolyjsDOM = document.createElement('script');
+monopolyjsDOM.setAttribute('src', 'https://cdn.jsdelivr.net/gh/piriys/Monopoly.js@v1.0.1/monopoly.js');
+document.head.append(gameDataDOM);
+monopolyjsDOM.addEventListener('load', () => {
+    Monopoly.load();
+});
+})" title="🎮 Monopoly.js">🎮 Monopoly.js</a>
+
+### By Downloading
+
+Add `monopoly.js` file into your html and run:
+
 ```javascript
 Monopoly.load();
 ```
 
 By default the script will target `body` DOM and load a game into it. However, you can set `loadTarget` parameter into the loader function to change target. For example:
+
 ```html
 <script>
   Monopoly.load({ loadTarget: "#loadHere" });
@@ -23,5 +40,3 @@ By default the script will target `body` DOM and load a game into it. However, y
 
 <div id="loadHere"></div>
 ```
-
-
